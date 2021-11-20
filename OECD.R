@@ -15,16 +15,16 @@ dataset <- "STLABOUR"
 
 # labor market example for Switzerland
 filt <- list(
-  c("CHE","DEU"),
+  c("CHE","DEU","AUT","ITA","FRA"),
   "LRUN24FE",
-#  "STSA",
-  "A"
+  "STSA"
+#  "A"
 )
 d <- get_dataset(dataset,filt)
 sel <- d %>%
   filter(FREQUENCY == "A",
-         obsTime >= 2010,
-         MEASURE == "STE"
+         obsTime >= 2000
+#         MEASURE == "STE"
          ) %>%
   # let's focus on cols location, time value, because none
   # of the other cols contain information, i.e., all their values
@@ -42,6 +42,9 @@ library(dplyr)
 wide_out |>
   e_charts(obsTime) |>
   e_bar(serie = CHE) |>
-  e_line(serie = DEU) 
+  e_line(serie = DEU) |>
+  e_line(serie = AUT) |>
+  e_line(serie = ITA) |>
+  e_line(serie = FRA) |>
   e_tooltip(trigger = "axis")
   
