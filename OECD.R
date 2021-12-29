@@ -16,7 +16,7 @@ dataset <- "STLABOUR"
 # labor market example for Switzerland
 filt <- list(
   c("CHE","DEU","AUT","ITA","FRA"),
-  "LRUN24FE",
+  "LRUN24TT",
   "STSA"
 #  "A"
 )
@@ -24,7 +24,7 @@ d <- get_dataset(dataset,filt)
 sel <- d %>%
   filter(FREQUENCY == "A",
          obsTime >= 2000
-#         MEASURE == "STE"
+ #        MEASURE == "STE"
          ) %>%
   # let's focus on cols location, time value, because none
   # of the other cols contain information, i.e., all their values

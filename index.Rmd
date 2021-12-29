@@ -1,0 +1,401 @@
+---
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+---
+title: "Labor market situation of older workers in Switzerland and specific OECD countries"
+subtitle: "Organisation Focus50Plus"
+author: "Simon Wey - wey@focus50plus.ch"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+link-citations: yes
+always_allow_html: yes
+---
+
+
+# Swiss labor market and some key facts
+ 
+So far, older workers are good integrated in the Swiss labor market. As long as they are hired, there is usually no problem. The have a harder time ghan younger generations if they lose their job, 
+
+## Teilzeitaktivität von Personen mit und ohne Kinder 
+
+### Third Level
+
+#### abz
+
+This is an R Markdown document $\sum \frac{a+b}{z}$. Markdown is a simple formatting sytax for authoring webpages.
+
+Use an asterisk mark to provide emphasis, such as *italics* or **bold**. Create lists with a dash:
+
+- Item 1
+- Item 2
+- Item 3
+
+```{r ,label="region",echo=FALSE, include=TRUE, message=FALSE}
+
+library(echarts4r)
+library(viridisLite)
+library(jsonlite)
+library(tidyverse)
+library(readxl)
+library(BFS)
+
+
+xlsx_exa <- read_excel("je-d-03.03.01.14.01.xlsx",sheet="Jahreswerte")#,range = "A10:z26")
+
+xlsx_exa <- xlsx_exa[c(4,8:15),]
+
+t <- data.frame(t(xlsx_exa)) 
+#t = t[-1,]
+colnames(t)<-t[1,]
+t=t[-1,]
+names(t)[1] <-  "TIME"
+#t$TIME <- as.(t$TIME) 
+#t$TIME <- as.numeric(t$TIME)
+
+#my_colors <- c("blue","red", "#03925e", "purple")
+t |>
+  e_charts(TIME) |>
+  e_line(Schweiz) |>
+  e_line(serie=Genferseeregion) %>%
+  e_line(serie=Zentralschweiz) %>%
+  e_line(serie=Tessin) %>%
+  e_line(serie=Zürich) %>%
+  e_tooltip(formatter = htmlwidgets::JS("
+                                    function(params){
+                                    return('Wert: ' +
+    parseFloat((params.value[1] * 10) / 10).toFixed(1)+'%')
+                                    } 
+                                    ") 
+  ) %>%
+  e_title("Regionale Erwerbslosenquoten",'nach Regionen') |>
+  e_legend(right = 0,top=20,type='scroll')  
+#  e_toolbox_feature('dataZoom') 
+#  e_toolbox_feature(feature='reset') %>%
+#  e_toolbox_feature('dataView') %>%
+#  e_toolbox_feature('saveAsImage') 
+
+
+```
+
+```{r ,label="un_rt_15-24",echo=FALSE, include=TRUE, message=FALSE}
+library(OECD)
+library(tidyverse)
+library(echarts4r)
+library(dplyr)
+dataset <- "STLABOUR"
+
+# labor market example for Switzerland
+filt <- list(
+  c("CHE","DEU","AUT","ITA","FRA"),
+  "LRUN24TT",
+  "STSA"
+)
+d <- get_dataset(dataset,filt)
+sel <- d %>%
+  filter(FREQUENCY == "A",
+         obsTime >= 2000
+         ) %>%
+  # let's focus on cols location, time value, because none
+  # of the other cols contain information, i.e., all their values
+  # are the same
+  select(obsTime, LOCATION, obsValue)
+
+wide_out <- sel %>%
+  pivot_wider(names_from = LOCATION,
+              values_from = obsValue)
+
+wide_out |>
+  e_charts(obsTime) |>
+  e_bar(serie = CHE) |>
+  e_line(serie = DEU) |>
+  e_line(serie = AUT) |>
+  e_line(serie = ITA) |>
+  e_line(serie = FRA) |>
+  e_legend(right = 0,top=20,type='scroll')  |>
+  e_tooltip(trigger = "axis") |>
+   e_title("Erwerbslosenquote 15- bis 24-Jährige") 
+ 
+
+```
+```{r ,label="un_rt_55-64",echo=FALSE, include=TRUE, message=FALSE}
+library(OECD)
+library(tidyverse)
+library(echarts4r)
+library(dplyr)
+dataset <- "STLABOUR"
+
+# labor market example for Switzerland
+filt <- list(
+  c("CHE","DEU","AUT","ITA","FRA"),
+  "LRUN55TT",
+  "STSA"
+)
+d <- get_dataset(dataset,filt)
+sel <- d %>%
+  filter(FREQUENCY == "A",
+         obsTime >= 2000
+         ) %>%
+  # let's focus on cols location, time value, because none
+  # of the other cols contain information, i.e., all their values
+  # are the same
+  select(obsTime, LOCATION, obsValue)
+
+wide_out <- sel %>%
+  pivot_wider(names_from = LOCATION,
+              values_from = obsValue)
+
+wide_out |>
+  e_charts(obsTime) |>
+  e_bar(serie = CHE) |>
+  e_line(serie = DEU) |>
+  e_line(serie = AUT) |>
+  e_line(serie = ITA) |>
+  e_line(serie = FRA) |>
+  e_legend(right = 0,top=20,type='scroll')  |>
+  e_tooltip(trigger = "axis") |>
+   e_title("Erwerbslosenquote 55- bis 64-Jährige") 
+ 
+
+```
+
+```
+
+Use bacl ticks to  create a block of code $\sum$. I counted `r sum(c(1,2,3))` \@ref(fig:un_rt_15-24)
+
+```
+	
+```{r ,label="un_rt_15-",echo=FALSE, include=TRUE, message=FALSE}
+library(OECD)
+
+dataset <- "STLABOUR"
+#dstrut <- get_data_structure(dataset)
+#a <- dstrut$SUBJECT 
+#str(dstruc, max.level = 1)
+#browse_metadata("STLABOUR")
+#b <- search_dataset("unemployment", data = a)
+# this takes a while cause it lists all datasets, this line is also not really needed
+# better to get an overview on the website
+#datasets <- get_dataset("STLABOUR")
+#head(datasets)
+
+# labor market example for Switzerland
+filt <- list(
+  c("CHE","DEU","AUT","ITA","FRA","USA"),
+  "LRUNTTTT",
+  "STSA"
+  #  "A"
+)
+d <- get_dataset(dataset,filt)
+sel <- d %>%
+  filter(FREQUENCY == "A",
+         obsTime >= 2000
+  ) %>%
+  # let's focus on cols location, time value, because none
+  # of the other cols contain information, i.e., all their values
+  # are the same
+  select(obsTime, LOCATION, obsValue)
+
+wide_out <- sel %>%
+  pivot_wider(names_from = LOCATION,
+              values_from = obsValue)
+
+
+#getSymbols("GS") #Goldman Sachs
+GS <- as.data.frame(wide_out)
+GS$date <- row.names(wide_out$obsTime)
+
+
+GS |> 
+  e_charts(obsTime) |> 
+  e_line(DEU) |> 
+  e_line(CHE) |> 
+  e_line(FRA) |> 
+  e_line(ITA) |> 
+  e_line(AUT) |> 
+  e_line(USA) |> 
+  e_tooltip(trigger = "axis") |>
+  e_datazoom(type = "slider") |> 
+  e_title("Erwerbslosigkeit von Personen über 15 Jahren", "Quelle: OECD") |>
+  e_legend(orient = 'horizontal', left = 300, top = 25)
+
+
+```
+
+
+In figure \@ref(fig:un_rt_15-24)
+
+```{r ,label="region_map_old_age",echo=FALSE, include=TRUE, message=FALSE}
+
+library(echarts4r)
+library(viridisLite)
+library(jsonlite)
+library(tidyverse)
+library(readxl)
+
+xlsx_exa <- read_xlsx("je-d-03.02.01.13.01.xlsx",sheet=5)#,range ="" "B36:cv43")
+xlsx_exa <- xlsx_exa[c(36:42,54:60),]
+
+names(xlsx_exa)[1] <- c("Regions")
+tz <- as.numeric(xlsx_exa$...12[1:7])/as.numeric(xlsx_exa$...12[8:14])
+
+d <- data.frame(
+  name=xlsx_exa$Regions[1:7],
+  values=tz
+)
+
+d$name[1] <- "Région lémanique"
+d$name[7] <- "Ticino"
+
+
+json_ch <- jsonlite::read_json(
+  "https://raw.githubusercontent.com/mbannert/maps/master/ch_bfs_regions.geojson"
+)
+
+a=min(d$values)
+b=max(d$values)
+
+d |>
+  e_charts(name) |>
+  e_map_register("CH", json_ch) |>
+  e_map(serie=values, map="CH") |>
+  e_visual_map(min=a,max=b) |>
+  e_tooltip(
+    formatter = htmlwidgets::JS("
+      function(params){
+        return('<strong>' + params.name + 
+                '</strong><br />' + parseFloat((params.value * 10) / 10).toFixed(2) +'%') 
+                }
+    ")
+  )
+
+```
+```{r ,label="region_kt",echo=FALSE, include=TRUE, message=FALSE}
+
+library(echarts4r)
+library(viridisLite)
+library(jsonlite)
+library(tidyverse)
+library(readxl)
+
+xlsx_exa <- read_excel("Kaiserschnitt.xlsx",sheet=1)#,range ="" "d19:d44")
+stat <- read_excel("Kantons_Abk.xlsx",range ="a2:b27",col_names=FALSE)
+stat$...1[4]="Basel-Landschaft"
+stat$...1[16]="St. Gallen"
+#xlsx_exa <- read_excel("https://www.bfs.admin.ch/bfsstatic/dam/assets/18784196/master",range = "A3:EI11")
+xlsx_exa <- xlsx_exa[19:44,4:5]
+#xlsx_exa <- xlsx_exa[-1,]
+a <- match(xlsx_exa$`Eidgenössisches Departement des Innern EDI`,stat$...2)
+for(i in 1:length(a)) {
+  xlsx_exa[i,1]=stat[a[i],1]
+}
+names(xlsx_exa)[1] <- c("Cantons")
+d <- data.frame(
+  name=xlsx_exa$Cantons,
+  values=xlsx_exa$...5
+)
+
+json_ch <- jsonlite::read_json(
+  "georef-switzerland-kanton.geojson"
+)
+
+a = min(d$values)
+b=max(d$values)
+
+d |>
+  e_charts(name) |>
+  e_map_register("CH", json_ch) |>
+  e_map(serie=values, map="CH") |>
+  #e_visual_map(values,
+  #             inRange = list(color = viridis(3))) |>
+  e_visual_map(values,min=a,max=b) |>
+  e_title("Prozentualer Anteil an Kaiserschnitten in der Schweiz") |>
+  e_tooltip(
+    formatter = htmlwidgets::JS("
+      function(params){
+        return('<strong>' + params.name + 
+                '</strong><br />' + parseFloat((params.value * 10) / 10).toFixed(1) +'%') 
+                }
+    ")
+  )
+    
+```
+
+
+
+```{r ,label="region_map",echo=FALSE, include=TRUE, message=FALSE}
+
+library(echarts4r)
+library(viridisLite)
+library(jsonlite)
+library(tidyverse)
+library(readxl)
+
+xlsx_exa <- read_excel("je-d-06.02.00.02.01.xlsx",sheet=3)#,range ="" "B36:cv43")
+#xlsx_exa <- read_excel("https://www.bfs.admin.ch/bfsstatic/dam/assets/18784196/master",range = "A3:EI11")
+xlsx_exa <- xlsx_exa[31:38,]
+#xlsx_exa <- xlsx_exa[-1,]
+names(xlsx_exa)[2] <- c("Regions")
+d <- data.frame(
+  name=xlsx_exa$Regions,
+  values=xlsx_exa$...75
+)
+
+d$name[2] <- "Région lémanique"
+d$name[8] <- "Ticino"
+
+
+json_ch <- jsonlite::read_json(
+  "https://raw.githubusercontent.com/mbannert/maps/master/ch_bfs_regions.geojson"
+)
+
+a=min(d$values)
+b=max(d$values)
+
+d |>
+  e_charts(name) |>
+  e_map_register("CH", json_ch) |>
+  e_map(serie=values, map="CH") |>
+#  e_visual_map(values, 
+#               inRange=list(color=viridis(1))) |>
+  e_visual_map(min=a,max=b) |>
+  e_tooltip(
+    formatter = htmlwidgets::JS("
+      function(params){
+        return('<strong>' + params.name + 
+                '</strong><br />' + parseFloat((params.value * 10) / 10).toFixed(1) +'%') 
+                }
+    ")
+  )
+    
+  
+```
+
+
+Embeded $\LaTeX$ or MathML equations,
+$\frac{1}{n} \sum_{i=n}^{n} x_{i}$
+
+Or even footnotes, citations, and a bibliography [^1]
+
+
+With the employer network [focus50plus](http://www.focus50plus.ch) and the key numbers [Kennzahlen Arbeitsmarkt](https://www.arbeitgeber.ch/kennzahlen-arbeitsmarkt/#aelterearbeitskraefte-erwerbstaetigkeitinternational) des
+
+
+
+
+[^1]: Markdown is great
+
+* Aber
+* Aber auch
+  + hallo
+  + klar
+  
+1 Hallo
+2 Du
+  + Hallo Du
