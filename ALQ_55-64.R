@@ -1,20 +1,23 @@
 rm(list=ls())
-setwd("/Users/simonwey/Repos/siwey.github.io/")
+
+setwd("/Users/simonwey/Repos/Report_Unemploy/")
+
+
 library(echarts4r)
 library(viridisLite)
 library(jsonlite)
 library(tidyverse)
 library(readxl)
-  
-xlsx_exa <- read_xlsx("UE_Grossregionen.xlsx",sheet=3)#,range ="" "B36:cv43")
-#xlsx_exa <- read_excel("https://www.bfs.admin.ch/bfsstatic/dam/assets/18784196/master",range = "A3:EI11")
-xlsx_exa <- xlsx_exa[9:15,]
+
+xlsx_exa <- read_excel("Arbeitslosenquoten.xlsx",sheet=1)#,range ="" "d19:d44")
+xlsx_exa <- xlsx_exa[c(6,10,14,18,22,26,30),c(2,30)]
+
 #xlsx_exa <- xlsx_exa[-1,]
 names(xlsx_exa)[1] <- c("Regions")
   
 d <- data.frame(
   name=xlsx_exa$Regions,
-  values=xlsx_exa$...12
+  values=xlsx_exa$...30
 )
   
 d$values <- round(as.numeric(d$values),1)
@@ -36,11 +39,10 @@ d |>
                show=TRUE, 
                type="piecewise",
                 splitList = list(
-                  list(min = 7.1,max=8.0, label="7-8 %"),
-                  list(min = 6.1,max=7.0,label="6-7 %"),
-                  list(min = 4.1, max = 5.0,label="4-5 %"),
-                  list(min = 3.1, max = 4.0,label="3-4 %"),
-                  list(min = 2.0, max = 3.0,label="2-3 %")
+                  list(min = 3.5, max = 4.0,label="3.5-4.0 %"),
+                  list(min = 3.0, max = 3.49,label="3.0-3.5 %"),
+                  list(min = 2.5, max = 2.99,label="2.5-3.0 %"),
+                  list(min = 2.0, max = 2.49,label="2.0-2.5 %")
                 ),
                top = "10%",left = "0%") |>#,min=a,max=b) |>
   e_tooltip(
@@ -51,4 +53,4 @@ d |>
                 }
     ")
   ) |>
-  e_theme("infographic") # chalk, essos, auritus, red,mint, inspired, helianthus, grey,dark-digerati, carp
+  e_theme("london") # chalk, essos, auritus, red,mint, inspired, helianthus, grey,dark-digerati, carp

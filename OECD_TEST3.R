@@ -6,8 +6,8 @@ library(tidyverse)
 # labor market example for Switzerland
 dataset <- "STLABOUR"
 
-#dstruc <- get_data_structure(dataset)
-#df <- data.frame(dstruc$SUBJECT$id,dstruc$SUBJECT$label)
+dstruc <- get_data_structure(dataset)
+df <- data.frame(dstruc$SUBJECT$id,dstruc$SUBJECT$label)
 #t <- head(dstruc)
 #dstruc$MEASURE LREMTT
 
@@ -31,18 +31,14 @@ wide_out <- sel %>%
 
 wide_out |>
   e_charts(obsTime) |>
-  e_line(CHE, name = "Schweiz") |>
-  e_line(DEU, name = "Deutschland") |>
-  e_line(AUT, name = "Österreich") |>
+  e_line(CHE, name = "Schweiz",lineStyle=list(width=3.5)) |>
+  e_line(DEU, name = "Deutschland",lineStyle=list(width=3.5)) |>
+  e_line(AUT, name = "Österreich",lineStyle=list(width=3.5)) |>
   e_line(ITA, name = "Italien") |>
   e_line(FRA, name = "Frankreich") |>
-  #e_tooltip(trigger="axis") |>
-  e_y_axis(axisLabel = list(fontSize = 30,
-                            formatter = htmlwidgets::JS("
-                                                        function(params){return (params.split(' ').join('\\n'))}
-                                                        ")
-  )
-  ) |>
+  #e_tooltip(trigger="a
+  #e_text_style(fontSize=30) |>
+  #e_format_x_axis(suffix = "%") |>
   e_tooltip(formatter = htmlwidgets::JS("
       function(params){
         return('<strong>' + params.name + 
@@ -51,4 +47,15 @@ wide_out |>
                 }")
   ) |>
   e_legend(orient = 'horizontal', top = 30) |>
-  e_format_y_axis(suffix = "%")
+  #e_format_y_axis(suffix="%") |>
+  e_axis_stagger() |>
+  
+  #  formatter = e_axis_formatter(fon)
+  #)
+
+  e_x_axis(axisLabel=list(fontSize=20)) |>
+  e_y_axis(axisLabel=list(fontSize=20)) |>
+  e_format_y_axis(suffix="%") 
+  #e_format_y_axis(suffix = "%",axisLabel=list(fontSize=20)) # |>
+  #e_y_axis(axisLabel=list(fontSize=20),suffix="%")
+

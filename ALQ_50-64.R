@@ -9,7 +9,7 @@ library(jsonlite)
 library(tidyverse)
 library(readxl)
 
-xlsx_exa <- read_excel("ALQ_Kt.xlsx",sheet=1)#,range ="" "d19:d44")
+xlsx_exa <- read_excel("Arbeitslosenquoten.xlsx",sheet=1)#,range ="" "d19:d44")
 xlsx_exa <- xlsx_exa[4:29,c(1,3)]
 
 stat <- read_excel("Kantons_Abk.xlsx",range ="a2:b27",col_names=FALSE)
