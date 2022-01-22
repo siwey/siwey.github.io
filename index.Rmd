@@ -1,254 +1,370 @@
 ---
-output:
-  html_document: default
-  word_document: default
-  pdf_document: default
----
-
----
-title: "Labor market situation of older workers in Switzerland and specific OECD countries"
-subtitle: "Organisation Focus50Plus"
-author: "Simon Wey - wey@focus50plus.ch"
+title: "Herausforderung Arbeitskräftemangel"
+author: "Simon Wey"
+lang: de
 date: "`r Sys.Date()`"
 output:
-  pdf_document: default
-  word_document: default
-  html_document: default
-link-citations: yes
-always_allow_html: yes
+  html_document
+
 ---
+fa sjdflkjasdf
+
+```{r ,label="t",echo=FALSE, include=TRUE, message=FALSE,warning=FALSE}
+
+rm(list=ls())
 
 
-# Swiss labor market and some key facts
- 
-So far, older workers are good integrated in the Swiss labor market. As long as they are hired, there is usually no problem. The have a harder time ghan younger generations if they lose their job, 
+library(echarts4r)
+library(viridisLite)
+library(dplyr)
+library(plotly)
+library(jsonlite)
+library(tidyverse)
+library(readxl)
+library(zoo)
 
-## Teilzeitaktivität von Personen mit und ohne Kinder 
+Dat="2011 Q4"
+Branche = 0 #1 = Industrie, 0=DL
 
-### Third Level
+xlsx_exa <- read_xlsx("20201112_BeschBar_Hemmn_FK.xlsm", sheet="Hemmnisse_Calc") #,range ="" "d19:d44")
+xlsx_exa <- xlsx_exa[c(141,150:193),]
+xlsx_exa[1,1] <- "Date"
+names(xlsx_exa) <- xlsx_exa[1,]
 
-#### abz
+xlsx_exa <- xlsx_exa[-1,]
 
-This is an R Markdown document $\sum \frac{a+b}{z}$. Markdown is a simple formatting sytax for authoring webpages.
+xlsx_exa$Date <- as.yearqtr(xlsx_exa$Date,"%Y-%m")
 
-Use an asterisk mark to provide emphasis, such as *italics* or **bold**. Create lists with a dash:
 
-- Item 1
-- Item 2
-- Item 3
+xlsx_exa <- subset(xlsx_exa, xlsx_exa$Date>= Dat)
+xlsx_exa$Date <- format(xlsx_exa$Date,format="%Y-Q%q")
 
-```{r ,label="region",echo=FALSE, include=TRUE, message=FALSE}
+#xlsx_exa$Bau <- round(as.numeric(xlsx_exa$Bau), 3)
+#xlsx_exa$IT <- round(as.numeric(xlsx_exa$IT), 3)
+##xlsx_exa$Pharma <- round(as.numeric(xlsx_exa$Pharma), 3)
+#xlsx_exa$Gesundheit <- round(as.numeric(xlsx_exa$Gesundheit), 3)
+#xlsx_exa$Gastgewerbe <- round(as.numeric(xlsx_exa$Gastgewerbe), 3)
+#xlsx_exa$Grosshandel <- round(as.numeric(xlsx_exa$Grosshandel), 3)
+#xlsx_exa$MEM <- round(as.numeric(xlsx_exa$MEM), 3)
+#xlsx_exa$Finanzen <- round(as.numeric(xlsx_exa$Finanzen), 3)
+
+xlsx_exa$Pharma <- pmax(xlsx_exa$Pharma,0)
+
+xlsx_exa |>
+    e_charts(Date) |>
+    e_text_style(fontSize=20) |>
+    e_x_axis(axisLabel=list(interval=3,rotate=45, fontSize=20)) |>
+    e_y_axis(axisLabel=list(rotate=0, fontSize=30),max=55) |>
+    
+    e_line(IT,name="Information / Kommunikation",showSymbol = FALSE,lineStyle=list(width=4)) |>
+    e_line(Gastgewerbe,showSymbol = FALSE,lineStyle=list(width=4)) |>
+    e_line(Grosshandel,showSymbol = FALSE,lineStyle=list(width=4)) |>
+    e_line(Gesundheit,showSymbol = FALSE,lineStyle=list(width=4)) |>
+    e_line(Finanzen,name="Finanz-DL / Versicherungen",showSymbol = FALSE,lineStyle=list(width=4)) |>
+    #e_axis_labels(
+    #  x = "",
+    #  y = "[%]"
+    #) |>
+    #e_title("",subtext="Quelle: KOF, saisonbereinigte Werte", left="10%",top="4%") #|>
+    e_tooltip(trigger="axis") |>
+    e_tooltip(formatter = htmlwidgets::JS("
+      function(params){
+        return('<strong>' + params.name + 
+                '</strong><br />' + 
+                parseFloat((params.value[1] * 10) / 10).toFixed(0) +'%') 
+                }")
+    ) |>
+    #e_datazoom(type = "slider") |>
+    e_toolbox_feature(feature = "saveAsImage") |>
+    e_legend(orient = 'horizontal', left = 120, top = 15) #|>
+   # e_format_y_axis(suffix = "%") #|>
+    #e_toolbox_feature("saveAsImage")
+
+#tmp <- tempfile(fileext = ".png")
+#  save_image(myplot, tmp)
+#  file.show(tmp)
+
+```
+
+```{r, label="t2",echo=FALSE, include=TRUE, message=FALSE,warning=FALSE}
 
 library(echarts4r)
 library(viridisLite)
 library(jsonlite)
 library(tidyverse)
 library(readxl)
-library(BFS)
+library(zoo)
+
+Dat="2011 Q4"
+Branche = 1 #1 = Industrie, 0=DL
+
+xlsx_exa <- read_xlsx("20201112_BeschBar_Hemmn_FK.xlsm", sheet="Hemmnisse_Calc") #,range ="" "d19:d44")
+xlsx_exa <- xlsx_exa[c(141,150:193),]
+xlsx_exa[1,1] <- "Date"
+names(xlsx_exa) <- xlsx_exa[1,]
+
+xlsx_exa <- xlsx_exa[-1,]
+
+xlsx_exa$Date <- as.yearqtr(xlsx_exa$Date,"%Y-%m")
 
 
-xlsx_exa <- read_excel("je-d-03.03.01.14.01.xlsx",sheet="Jahreswerte")#,range = "A10:z26")
-
-xlsx_exa <- xlsx_exa[c(4,8:15),]
-
-t <- data.frame(t(xlsx_exa)) 
-#t = t[-1,]
-colnames(t)<-t[1,]
-t=t[-1,]
-names(t)[1] <-  "TIME"
-#t$TIME <- as.(t$TIME) 
-#t$TIME <- as.numeric(t$TIME)
-
-#my_colors <- c("blue","red", "#03925e", "purple")
-t |>
-  e_charts(TIME) |>
-  e_line(Schweiz) |>
-  e_line(serie=Genferseeregion) %>%
-  e_line(serie=Zentralschweiz) %>%
-  e_line(serie=Tessin) %>%
-  e_line(serie=Zürich) %>%
-  e_tooltip(formatter = htmlwidgets::JS("
-                                    function(params){
-                                    return('Wert: ' +
-    parseFloat((params.value[1] * 10) / 10).toFixed(1)+'%')
-                                    } 
-                                    ") 
-  ) %>%
-  e_title("Regionale Erwerbslosenquoten",'nach Regionen') |>
-  e_legend(right = 0,top=20,type='scroll')  
-#  e_toolbox_feature('dataZoom') 
-#  e_toolbox_feature(feature='reset') %>%
-#  e_toolbox_feature('dataView') %>%
-#  e_toolbox_feature('saveAsImage') 
+xlsx_exa <- subset(xlsx_exa, xlsx_exa$Date>= Dat)
+xlsx_exa$Date <- format(xlsx_exa$Date,format="%Y-Q%q")
 
 
-```
+xlsx_exa$Pharma <- pmax(xlsx_exa$Pharma,0)
 
-```{r ,label="un_rt_15-24",echo=FALSE, include=TRUE, message=FALSE}
-library(OECD)
-library(tidyverse)
-library(echarts4r)
-library(dplyr)
-dataset <- "STLABOUR"
-
-# labor market example for Switzerland
-filt <- list(
-  c("CHE","DEU","AUT","ITA","FRA"),
-  "LRUN24TT",
-  "STSA"
-)
-d <- get_dataset(dataset,filt)
-sel <- d %>%
-  filter(FREQUENCY == "A",
-         obsTime >= 2000
-         ) %>%
-  # let's focus on cols location, time value, because none
-  # of the other cols contain information, i.e., all their values
-  # are the same
-  select(obsTime, LOCATION, obsValue)
-
-wide_out <- sel %>%
-  pivot_wider(names_from = LOCATION,
-              values_from = obsValue)
-
-wide_out |>
-  e_charts(obsTime) |>
-  e_bar(serie = CHE) |>
-  e_line(serie = DEU) |>
-  e_line(serie = AUT) |>
-  e_line(serie = ITA) |>
-  e_line(serie = FRA) |>
-  e_legend(right = 0,top=20,type='scroll')  |>
-  e_tooltip(trigger = "axis") |>
-   e_title("Erwerbslosenquote 15- bis 24-Jährige") 
- 
-
-```
-```{r ,label="un_rt_55-64",echo=FALSE, include=TRUE, message=FALSE}
-library(OECD)
-library(tidyverse)
-library(echarts4r)
-library(dplyr)
-dataset <- "STLABOUR"
-
-# labor market example for Switzerland
-filt <- list(
-  c("CHE","DEU","AUT","ITA","FRA"),
-  "LRUN55TT",
-  "STSA"
-)
-d <- get_dataset(dataset,filt)
-sel <- d %>%
-  filter(FREQUENCY == "A",
-         obsTime >= 2000
-         ) %>%
-  # let's focus on cols location, time value, because none
-  # of the other cols contain information, i.e., all their values
-  # are the same
-  select(obsTime, LOCATION, obsValue)
-
-wide_out <- sel %>%
-  pivot_wider(names_from = LOCATION,
-              values_from = obsValue)
-
-wide_out |>
-  e_charts(obsTime) |>
-  e_bar(serie = CHE) |>
-  e_line(serie = DEU) |>
-  e_line(serie = AUT) |>
-  e_line(serie = ITA) |>
-  e_line(serie = FRA) |>
-  e_legend(right = 0,top=20,type='scroll')  |>
-  e_tooltip(trigger = "axis") |>
-   e_title("Erwerbslosenquote 55- bis 64-Jährige") 
- 
+if (Branche == 1){
+xlsx_exa |>
+    e_charts(Date) |>
+    e_text_style(fontSize=30) |>
+    e_x_axis(axisLabel=list(interval=3,rotate=45, fontSize=20)) |>
+    e_y_axis(axisLabel=list(rotate=0, fontSize=30),max=55) |>
+    e_line(serie=Bau, name="Baugewerbe",showSymbol = FALSE,lineStyle=list(width=4)) |>
+    e_line(MEM,name="MEM-Industrie",showSymbol = FALSE,lineStyle=list(width=4)) |>
+    e_line(Pharma,name="Chemie- und Pharma-Industrie",showSymbol = FALSE,lineStyle=list(width=4)) |>
+    e_color(
+    c("#8A2BE2","#B8860B","#000000"),
+  ) |>
+   # e_title("",subtext="Quelle: KOF, saisonbereinigte Werte", left="10%",top="4%") #|>
+    e_tooltip(trigger="axis") |>
+    e_tooltip(formatter = htmlwidgets::JS("
+      function(params){
+        return('<strong>' + params.name + 
+                '</strong><br />' + 
+                parseFloat((params.value[1] * 10) / 10).toFixed(0) +'%') 
+                }")
+    ) |>
+    #e_datazoom(type = "slider") |>
+    e_toolbox_feature(feature = "saveAsImage") |>
+    e_legend(orient = 'horizontal', left = 120, top =15) #|>
+    #e_format_y_axis(suffix = "%") #|>
+    #e_toolbox_feature("saveAsImage")
+} else {
+xlsx_exa |>
+    e_charts(Date) |>
+    e_line(IT) |>
+    e_line(Gastgewerbe) |>
+    e_line(Grosshandel) |>
+    e_line(Gesundheit) |>
+    e_line(Finanzen) |>
+    e_title("Arbeitskräftemangel Dienstleistung",subtext="Saisonbereinigte Werte",sublink="www.focus50plus.ch", left="10%") |>
+    
+    e_tooltip(trigger="axis") |>
+    e_tooltip(formatter = htmlwidgets::JS("
+      function(params){
+        return('<strong>' + params.name + 
+                '</strong><br />' + 
+                parseFloat((params.value[1] * 10) / 10).toFixed(0) +'%') 
+                }")
+    ) |>
+    #e_datazoom(type = "slider") |>
+    e_legend(orient = 'horizontal', left = 300, top = 30) |>
+    e_format_y_axis(suffix = "%") #|>
+    #e_toolbox_feature("saveAsImage")
+}
 
 ```
 
-```
+```{r, label="t3",echo=FALSE, include=TRUE, message=FALSE,warning=FALSE}
 
-Use bacl ticks to  create a block of code $\sum$. I counted `r sum(c(1,2,3))` \@ref(fig:un_rt_15-24)
-
-```
-	
-```{r ,label="un_rt_15-",echo=FALSE, include=TRUE, message=FALSE}
-library(OECD)
-
-dataset <- "STLABOUR"
-#dstrut <- get_data_structure(dataset)
-#a <- dstrut$SUBJECT 
-#str(dstruc, max.level = 1)
-#browse_metadata("STLABOUR")
-#b <- search_dataset("unemployment", data = a)
-# this takes a while cause it lists all datasets, this line is also not really needed
-# better to get an overview on the website
-#datasets <- get_dataset("STLABOUR")
-#head(datasets)
-
-# labor market example for Switzerland
-filt <- list(
-  c("CHE","DEU","AUT","ITA","FRA","USA"),
-  "LRUNTTTT",
-  "STSA"
-  #  "A"
-)
-d <- get_dataset(dataset,filt)
-sel <- d %>%
-  filter(FREQUENCY == "A",
-         obsTime >= 2000
-  ) %>%
-  # let's focus on cols location, time value, because none
-  # of the other cols contain information, i.e., all their values
-  # are the same
-  select(obsTime, LOCATION, obsValue)
-
-wide_out <- sel %>%
-  pivot_wider(names_from = LOCATION,
-              values_from = obsValue)
-
-
-#getSymbols("GS") #Goldman Sachs
-GS <- as.data.frame(wide_out)
-GS$date <- row.names(wide_out$obsTime)
-
-
-GS |> 
-  e_charts(obsTime) |> 
-  e_line(DEU) |> 
-  e_line(CHE) |> 
-  e_line(FRA) |> 
-  e_line(ITA) |> 
-  e_line(AUT) |> 
-  e_line(USA) |> 
-  e_tooltip(trigger = "axis") |>
-  e_datazoom(type = "slider") |> 
-  e_title("Erwerbslosigkeit von Personen über 15 Jahren", "Quelle: OECD") |>
-  e_legend(orient = 'horizontal', left = 300, top = 25)
-
-
-```
-
-
-In figure \@ref(fig:un_rt_15-24)
-
-```{r ,label="region_map_old_age",echo=FALSE, include=TRUE, message=FALSE}
-
+setwd("/Users/simonwey/Repos/Hemmnisse")
 library(echarts4r)
 library(viridisLite)
 library(jsonlite)
 library(tidyverse)
 library(readxl)
 
-xlsx_exa <- read_xlsx("je-d-03.02.01.13.01.xlsx",sheet=5)#,range ="" "B36:cv43")
-xlsx_exa <- xlsx_exa[c(36:42,54:60),]
 
-names(xlsx_exa)[1] <- c("Regions")
-tz <- as.numeric(xlsx_exa$...12[1:7])/as.numeric(xlsx_exa$...12[8:14])
+Dat="2011 Q1"
+
+
+xlsx_exa <- read_xlsx("20201112_BeschBar_Hemmn_FK.xlsm", sheet="Hemmnisse_Calc") #,range ="" "d19:d44")
+xlsx_exa <- xlsx_exa[c(141,150:193),]
+xlsx_exa[1,1] <- "Date"
+names(xlsx_exa) <- xlsx_exa[1,]
+
+xlsx_exa <- xlsx_exa[-1,]
+
+
+V20 <- c(round(as.numeric(tail(xlsx_exa$IT,n=1)),0),round(as.numeric(tail(xlsx_exa$Gesundheit,n=1)),0),round(as.numeric(tail(xlsx_exa$Gastgewerbe,n=1)),0),round(as.numeric(tail(xlsx_exa$Grosshandel,n=1)),0),round(as.numeric(tail(xlsx_exa$Finanzen,n=1)),0),round(as.numeric(tail(xlsx_exa$Bau,n=1)),0),round(as.numeric(tail(xlsx_exa$MEM,n=1)),0),round(as.numeric(tail(xlsx_exa$Pharma,n=1)),0))
+#V21 <- c(mean(as.numeric(xlsx_exa$IT)),mean(as.numeric(xlsx_exa$Gesundheit)),mean(as.numeric(xlsx_exa$Gastgewerbe)),mean(as.numeric(xlsx_exa$Grosshandel)),mean(as.numeric(xlsx_exa$Finanzen)),mean(as.numeric(xlsx_exa$Bau)),mean(as.numeric(xlsx_exa$MEM)),mean(as.numeric(xlsx_exa$Pharma)))
+V21 <- c(round(mean(as.numeric(head(xlsx_exa$IT,-1))),0),round(mean(as.numeric(head(xlsx_exa$Gesundheit,-1))),0),round(mean(as.numeric(head(xlsx_exa$Gastgewerbe,-1))),0),round(mean(as.numeric(head(xlsx_exa$Grosshandel,-1))),0),round(mean(as.numeric(head(xlsx_exa$Finanzen,-1))),0),round(mean(as.numeric(head(xlsx_exa$Bau,-1))),0),round(mean(as.numeric(head(xlsx_exa$MEM,-1))),0),round(mean(as.numeric(head(xlsx_exa$Pharma,-1))),0))
+names <- c(as.character('IT & Komm.'),as.character('Gesundheit'),as.character('Gastgewerbe'),as.character('Grosshandel'),as.character('Finanz-DL / Vers.'),as.character('Baugewerbe'),as.character('MEM-Industrie'),as.character('Chemie & Pharma'))
+names
 
 d <- data.frame(
-  name=xlsx_exa$Regions[1:7],
-  values=tz
+  nam=names,
+  act_val=V20,
+  mean_val=V21
 )
+
+d |>
+  e_charts(nam) |>
+  e_text_style(fontSize=30) |>
+  e_bar(act_val, name="2021:Q4") |>
+  e_bar(mean_val, name="Mittelwert 2011 bis 2021:Q3") |>
+  e_color(
+    c("#2874A6","#5DADE2","#2874A6"," #5DADE2"),
+  ) |>
+ # e_line(Banken) |>
+ # e_line(Gastgewerbe) |>
+ # e_line(Gesundheit) |>
+ # e_line(IT) |>
+  e_x_axis(axisLabel=list(interval=0,rotate=15, fontSize=25)) |>
+    e_y_axis(axisLabel=list(rotate=0, fontSize=30)) |>
+  #e_title("",subtext="Quelle: KOF, saisonbereinigte Werte", left="10%",top="4%") |>
+  e_tooltip(trigger="axis") |>
+  #e_tooltip(trigger = 'axis',
+  #          format ="percent") |>
+  #e_datazoom(type = "slider") |>
+  e_toolbox_feature(feature = "saveAsImage") |>
+    e_legend(orient = 'horizontal', left = 120, top =15) 
+  #e_format_y_axis(suffix = "%") #|>
+  #e_toolbox_feature("saveAsImage")
+
+
+
+```
+
+
+```{r, label="t4",echo=FALSE, include=TRUE, message=FALSE,warning=FALSE}
+
+
+
+library(echarts4r)
+library(viridisLite)
+library(jsonlite)
+library(tidyverse)
+library(readxl)
+library(zoo)
+library(readr)
+
+
+Dat="2011 Q1"
+Tables <- list('Demand','Fin_Sit','M_AK','No_probl','oth_probl',"tech_Kap")
+#Branches <- #list('Bau','MEM','Pharma','IT','Gesundheit','Gastgewerbe','Grosshandel','Finanzen')
+Branches <- list('IT','Gesundheit','Gastgewerbe', 'Grosshandel','Finanzen','Bau','MEM','Pharma')  
+
+#Define function to subset data
+restr_table <- function(a,dat) {
+  a$Date <- as.yearqtr(a$Date,"%Y-%m")
+  a <- subset(a, a$Date>= dat)
+  a$Date <- format(a$Date,format="%Y-Q%q")
+  return(a)
+}
+
+xlsx_exa <- read_xlsx("20201112_BeschBar_Hemmn_FK.xlsm", sheet="Hemmnisse_Calc") #,range ="" "d19:d44")
+#xlsx_exa <- xlsx_exa[c(1:53,71:123,141:193,211:263,281:333,351:403),]
+xlsx_exa_Demand <- xlsx_exa[c(1:53),] 
+xlsx_exa_Fin_Sit <- xlsx_exa[c(71:123),]
+xlsx_exa_M_AK <- xlsx_exa[c(141:193),]
+xlsx_exa_No_probl <- xlsx_exa[c(211:263),]
+xlsx_exa_oth_probl <- xlsx_exa[c(281:333),]
+xlsx_exa_tech_Kap <- xlsx_exa[c(351:403),]
+
+TS_Demand <- c()
+TS_mean_Demand <- c()
+TS_Fin_Sit <- c()
+TS_mean_Fin_Sit <- c()
+TS_M_AK <- c()
+TS_mean_M_AK <- c()
+TS_No_probl <- c()
+TS_mean_No_probl <- c()
+TS_oth_probl <- c()
+TS_mean_oth_probl <- c()
+TS_tech_Kap <- c()
+TS_mean_tech_Kap <- c()
+
+for(i in 1:length(Tables)) { 
+  eval(parse(text=paste(paste0(paste0("xlsx_exa_", Tables[i]),"[1,1]"),"<-'Date'")))
+  eval(parse(text=paste(paste0(paste0(paste0("names(xlsx_exa_", Tables[i]),")"), "<- eval(parse(text=paste0(paste0('xlsx_exa_', Tables[i]),'[1,]')))"))))
+  eval(parse(text=paste(paste0(paste0("xlsx_exa_", Tables[i]), "<- eval(parse(text=paste0(paste0('xlsx_exa_', Tables[i]),'[-1,]')))"))))
+}
+#eval(parse(text=paste(paste0(paste0(paste0("xlsx_exa_", Tables[i]),"$Date")), "<- eval(parse(text=paste0(paste0(paste0(paste0('as.yearqtr(xlsx_exa_', Tables[i]),'$Date,'),'%Y-%m'),')')))")))
+
+for(i in 1:length(Tables)) {
+  eval(parse(text=paste(paste0(paste0("xlsx_exa_", Tables[i]), "<- eval(parse(text=paste0(paste0('restr_table(xlsx_exa_', Tables[i]),',Dat)')))"))))
+  #xlsx_exa_Demand <- eval(parse(text=paste0(paste0("restr_table(xlsx_exa_", Tables[i]),",Dat)")))
+}
+
+for (j in 1:length(Tables)) {
+  for(i in 1:length(Branches)) { 
+    #Last value of the time series obstacles
+    eval(parse(text=paste(paste0("TS_", Tables[j]), "<- eval(parse(text=paste0(paste0(paste0(paste0(paste0(paste0('c(TS_',Tables[j]),',round(as.numeric(tail(xlsx_exa_'), Tables[j]),'$'),Branches[i]),',n=1)),0))')))")))
+    #substract last value for calculating mean
+    eval(parse(text=paste('tmp', "<- eval(parse(text=paste0(paste0(paste0(paste0('mean(as.numeric(head(xlsx_exa_', Tables[j]),'$'),Branches[i]),',-1)))')))")))
+    #Corrected (minus last value) mean of the time series obstacles
+    eval(parse(text=paste(paste0("TS_mean_", Tables[j]), "<- eval(parse(text=paste0(paste0('c(TS_mean_',Tables[j]),',round(tmp,0))')))")))
+    
+    #Mean (with all data) of the time series obstacles
+    #eval(parse(text=paste(paste0("TS_mean_", Tables[j]), "<- eval(parse(text=paste0(paste0(paste0(paste0(paste0(paste0('c(TS_mean_',Tables[j]),',mean(as.numeric(xlsx_exa_'), Tables[j]),'$'),Branches[i]),')))')))")))
+  }
+}
+
+
+Branches[3] <- "Gastgew."
+Branches[4] <- "Grossh."
+
+
+d <- data.frame(
+  nam=unlist(Branches),
+  dem=TS_Demand,
+  fin=TS_Fin_Sit,
+  AKM=TS_M_AK,
+  NPr=TS_No_probl,
+  dem_m=TS_mean_Demand,
+  fin_m=TS_mean_Fin_Sit,
+  AKM_m=TS_mean_M_AK,
+  NPr_m=TS_mean_No_probl
+  #mean_val=V21
+)
+
+#d$AKM <- paste(round(d$AKM, 0), "%", sep="")
+
+d |>
+  e_charts(nam,width=750) |>
+  #e_bar(AKM) |>
+  #e_bar(AKM_m) |>
+  e_bar(NPr) |>
+  e_bar(NPr_m) |>
+  e_color(
+    c("#2874A6","#5DADE2","#C39BD3","#8E44AD"),
+  ) |>
+  #e_bar(dem, name="Demand") |>
+  #e_bar(fin) |>
+  #e_bar(NPr) |>
+  e_x_axis(axisLabel = list(interval = 0, rotate = 75)) |> # rotate
+  e_title("Hemmnisse",subtext="Saisonbereinigte Werte",sublink="www.focus50plus.ch", left="10%") |>
+  e_tooltip(trigger="axis") |>
+  #e_datazoom(type = "slider") |>
+  e_legend(orient = 'horizontal', left = 250, top = 25) |>
+  e_format_y_axis(suffix = "%") #|>
+  #e_toolbox_feature("saveAsImage")
+
+
+```
+
+```{r, label="t5",echo=FALSE, include=TRUE, message=FALSE,warning=FALSE}
+
+library(echarts4r)
+library(viridisLite)
+library(jsonlite)
+library(tidyverse)
+library(readxl)
+
+xlsx_exa <- read_xlsx("Schw_Rekrutierung.xlsx",sheet=4)#,range ="" "B36:cv43")
+#xlsx_exa <- read_excel("https://www.bfs.admin.ch/bfsstatic/dam/assets/18784196/master",range = "A3:EI11")
+xlsx_exa <- xlsx_exa[33:39,]
+#xlsx_exa <- xlsx_exa[-1,]
+names(xlsx_exa)[2] <- c("Regions")
+
+d <- data.frame(
+  name=xlsx_exa$Regions,
+  values=xlsx_exa$...72
+)
+
+d$values <- round(as.numeric(d$values),2)
 
 d$name[1] <- "Région lémanique"
 d$name[7] <- "Ticino"
@@ -265,137 +381,172 @@ d |>
   e_charts(name) |>
   e_map_register("CH", json_ch) |>
   e_map(serie=values, map="CH") |>
-  e_visual_map(min=a,max=b) |>
+  e_text_style(fontSize=30) |>
+
+  #e_visual_map(values, 
+  #             inRange=list(color=viridis(3))) |>
+  e_visual_map(values) |>
   e_tooltip(
-    formatter = htmlwidgets::JS("
+  formatter = htmlwidgets::JS("
       function(params){
         return('<strong>' + params.name + 
-                '</strong><br />' + parseFloat((params.value * 10) / 10).toFixed(2) +'%') 
+                '</strong><br />Wert: ' + parseFloat((params.value * 10) / 10).toFixed(1) +'%') 
                 }
     ")
-  )
+) |>
+  e_theme("infographic") #carp
+
 
 ```
-```{r ,label="region_kt",echo=FALSE, include=TRUE, message=FALSE}
+## Zusammenfassung 
 
-library(echarts4r)
-library(viridisLite)
-library(jsonlite)
-library(tidyverse)
-library(readxl)
+* Hallo
 
-xlsx_exa <- read_excel("Kaiserschnitt.xlsx",sheet=1)#,range ="" "d19:d44")
-stat <- read_excel("Kantons_Abk.xlsx",range ="a2:b27",col_names=FALSE)
-stat$...1[4]="Basel-Landschaft"
-stat$...1[16]="St. Gallen"
-#xlsx_exa <- read_excel("https://www.bfs.admin.ch/bfsstatic/dam/assets/18784196/master",range = "A3:EI11")
-xlsx_exa <- xlsx_exa[19:44,4:5]
-#xlsx_exa <- xlsx_exa[-1,]
-a <- match(xlsx_exa$`Eidgenössisches Departement des Innern EDI`,stat$...2)
-for(i in 1:length(a)) {
-  xlsx_exa[i,1]=stat[a[i],1]
-}
-names(xlsx_exa)[1] <- c("Cantons")
-d <- data.frame(
-  name=xlsx_exa$Cantons,
-  values=xlsx_exa$...5
-)
+## Treiber des Arbeitskräftemangels
 
-json_ch <- jsonlite::read_json(
-  "georef-switzerland-kanton.geojson"
-)
+Der sich akzentuierende Engpass an Arbeitskräften ist das Ergebnis von Entwicklungen, die sich im
+Ergebnis kumulieren und den Mangel an Arbeitskräften verschärfen. Zum einen führt die
+fortschreitende Alterung der Bevölkerung dazu, dass mehr Erwerbstätige altersbedingt aus dem
+Arbeitsmarkt ausscheiden, als Jüngere nachrücken. Zum anderen stagniert die Netto-Zuwanderung
+aus EU/Efta-Ländern in den letzten fünf Jahren auf durchschnittlich etwa 30&#39;000 Personen. Auch
+dieses Jahr liegt sie bisher trotz starkem wirtschaftlichem Aufschwung tiefer als vor einem Jahr. Dies
+hat mehrere Gründe. So verlassen potenzielle Zuwanderer ihre Heimat kaum, wenn die Wirtschaft in
+ihren Ländern floriert und sie dort ebenfalls attraktive Stellenangebote vorfinden. Ebenso ist die
+zuwanderungskritische Haltung von Teilen der Politik und der Bevölkerung in der Schweiz der
+Attraktivität als Zuwanderungsland nicht wirklich förderlich.
 
-a = min(d$values)
-b=max(d$values)
+\begin{figure}[h] \centering
+\includegraphics[width=\linewidth]{/Users/simonwey/Repos/Hemmnisse_Docu/Graphics/myplot1.png}
+\caption{Anteil Dienstleistungsbetriebe mit Arbeitskräftemangel. Quelle KOF, saisonbereinigte Daten}
+\label{DL_Betr}
+\end{figure}
 
-d |>
-  e_charts(name) |>
-  e_map_register("CH", json_ch) |>
-  e_map(serie=values, map="CH") |>
-  #e_visual_map(values,
-  #             inRange = list(color = viridis(3))) |>
-  e_visual_map(values,min=a,max=b) |>
-  e_title("Prozentualer Anteil an Kaiserschnitten in der Schweiz") |>
-  e_tooltip(
-    formatter = htmlwidgets::JS("
-      function(params){
-        return('<strong>' + params.name + 
-                '</strong><br />' + parseFloat((params.value * 10) / 10).toFixed(1) +'%') 
-                }
-    ")
-  )
-    
-```
+Während sich also das Arbeitskräfteangebot tendenziell rückläufig entwickelt, nimmt die Nachfrage
+nach Arbeitskräften fortlaufend zu. So wurden in den letzten zehn Jahren fast eine halbe Million
+Stellen neu geschaffen und Prognosen gehen bis 2030 von einem weiteren Wachstum von gegen
+200&#39;000 Stellen aus. Eine jüngst in diesem Zusammenhang publizierte Studie geht bis 2050 alleine für
+den Kanton Zürich von einer Arbeitskräftelücke von rund 210&#39;000 Personen aus. Bisher ebenfalls
+wenig zu einer tieferen Arbeitskräftenachfrage trugen die Automatisierung und Digitalisierung bei.
+Vielmehr als die Quantität werden dadurch zudem die Qualifikationsansprüche an die
+Stellenbewerber verändert.
+\begin{figure}[h] 
+\centering
+\includegraphics[width=\linewidth]{/Users/simonwey/Repos/Hemmnisse_Docu/Graphics/myplot1b.png}
+\caption{Say Hello}
+\label{fig:birds}
+\end{figure}
 
+## Stark gestiegener Bedarf 
 
+Die Konjunkturforschungsstelle der ETH (KOF) analysiert mit Fragebögen an Unternehmen
+ausgewählter Branchen deren konjunkturelle und arbeitsmarktliche Befindlichkeiten. Eine Frage
+erfasst dabei auch den Mangel an Arbreitskräften als Hemmnis bei der Produktion und der
+Erbringung von Dienstleistungen in Industrie- und Dienstleistungsbetrieben. Nicht weiter
+überraschend nahm dabei der Ruf nach fehlenden Fachkräften im Verlaufe der Corona-Pandemie
+zwischenzeitlich stark ab. Seit jedoch die Corona-Schutzmassnahmen zu Beginn dieses Jahres
+gelockert wurden und die Wirtschaft wieder brummt, harzt die Besetzung von Stellen mit
+Fachkräften in vielen Betrieben bereits wieder. Dies zeigt sich deutlich am oben erwähnten Indikator
+der KOF: seit Beginn des Jahres hat er für praktisch alle Branchen wieder stark zugelegt. Auffällig ist
+der starke Anstieg im Gastgewerbe (vgl. Abbildung \ref{DL_Betr}). Auch in anderen Branchen hat sich die Arbeitskräftesituation
+wieder verschärft. Am virulentesten ist das Thema in der Informations- und
+Kommunikationsbranche, im Gesundheitswesen und im Baugewerbe.
+\begin{figure}[h] \centering
+\includegraphics[width=\linewidth]{/Users/simonwey/Repos/Hemmnisse_Docu/Graphics/myplot2.png}
+\caption{Stand Arbeitskräftemangel im 4. Quartal 2021 im Vergleich zum durchschnittlichen Anteil seit 2011}
+\end{figure}
 
-```{r ,label="region_map",echo=FALSE, include=TRUE, message=FALSE}
+## Wie offene Stellen besetzen?
 
-library(echarts4r)
-library(viridisLite)
-library(jsonlite)
-library(tidyverse)
-library(readxl)
+Schweizerischen Arbeitgeberverband steht die Ausschöpfung des inländischen
+Arbeitskräftepotenzial weit oben auf der Prioritätenliste. Dabei bringt er sich insbesondere bei den
+Themen der Vereinbarkeit von Familie und Beruf und der verstärkten und nachhaltigen Einbindung von älteren Personen in den Arbeitsmarkt an vorderster Front bei der Erarbeitung von nachhaltigen
+Lösungen ein. Um dem Mangel an Fachkräften kurzfristig entgegenzutreten, muss eine
+Liberalisierung der zu restriktiven Zulassungskriterien für Drittstaatenangehörige ins Auge gefasst
+werden.
+\ref{fig:birds}
+\begin{figure}[h]
+  \centering
+    \includegraphics[trim={0 0 9cm 0},clip]{/Users/simonwey/Repos/Hemmnisse_Docu/Graphics/myplot3.png}
+    \caption{Plot of pressure against temperature}
+\end{figure}
+Der Ruf der Betriebe nach zusätzlichen Fachkräften ist somit kaum Gejammer. Viel mehr sind
+wirtschaftliche und politische Entwicklungen im Gange, die sich kumulieren und in der Summe den
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
 
-xlsx_exa <- read_excel("je-d-06.02.00.02.01.xlsx",sheet=3)#,range ="" "B36:cv43")
-#xlsx_exa <- read_excel("https://www.bfs.admin.ch/bfsstatic/dam/assets/18784196/master",range = "A3:EI11")
-xlsx_exa <- xlsx_exa[31:38,]
-#xlsx_exa <- xlsx_exa[-1,]
-names(xlsx_exa)[2] <- c("Regions")
-d <- data.frame(
-  name=xlsx_exa$Regions,
-  values=xlsx_exa$...75
-)
+## Schwierigkeiten bei der Rekrutierung
 
-d$name[2] <- "Région lémanique"
-d$name[8] <- "Ticino"
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
 
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
 
-json_ch <- jsonlite::read_json(
-  "https://raw.githubusercontent.com/mbannert/maps/master/ch_bfs_regions.geojson"
-)
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
 
-a=min(d$values)
-b=max(d$values)
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=1.1\linewidth]{/Users/simonwey/Repos/Hemmnisse_Docu/Graphics/myplot4.png}
+    \caption{Ausprägung der Schwierigkeiten bei der Suche nach Hochschulabgängern als Arbeitnehmende. }
+\end{figure}
 
-d |>
-  e_charts(name) |>
-  e_map_register("CH", json_ch) |>
-  e_map(serie=values, map="CH") |>
-#  e_visual_map(values, 
-#               inRange=list(color=viridis(1))) |>
-  e_visual_map(min=a,max=b) |>
-  e_tooltip(
-    formatter = htmlwidgets::JS("
-      function(params){
-        return('<strong>' + params.name + 
-                '</strong><br />' + parseFloat((params.value * 10) / 10).toFixed(1) +'%') 
-                }
-    ")
-  )
-    
-  
-```
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
 
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
 
-Embeded $\LaTeX$ or MathML equations,
-$\frac{1}{n} \sum_{i=n}^{n} x_{i}$
-
-Or even footnotes, citations, and a bibliography [^1]
-
-
-With the employer network [focus50plus](http://www.focus50plus.ch) and the key numbers [Kennzahlen Arbeitsmarkt](https://www.arbeitgeber.ch/kennzahlen-arbeitsmarkt/#aelterearbeitskraefte-erwerbstaetigkeitinternational) des
-
-
-
-
-[^1]: Markdown is great
-
-* Aber
-* Aber auch
-  + hallo
-  + klar
-  
-1 Hallo
-2 Du
-  + Hallo Du
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
+Mangel an Fachkräften akzentuieren. Der Aufschrei der Betriebe muss für die Politik ein Weckruf
+sein, dringend notwendige Massnahmen rasch in die Wege zu leiten. Denn ohne gesetzliche
+Anpassungen bleiben wirksame und nachhaltige Veränderungen Wunschdenken. Und, soll die
+Schweiz für Unternehmen attraktiv bleiben, so muss ein unbürokratischer Zugang zu Fachkräften
+gewährleistet sein.
